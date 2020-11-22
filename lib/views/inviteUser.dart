@@ -53,7 +53,7 @@ class _InviteUserScreenState extends State<InviteUserScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(username, style: TextStyle(color: Theme.of(context).primaryColor)),
+                Text(username, style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
                 Text(email, style: TextStyle(color: Theme.of(context).primaryColor),),
               ],
             ),

@@ -1,15 +1,12 @@
 import 'package:chat_app/helper/authenticate.dart';
 import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/helper/helperFunctions.dart';
 import 'package:chat_app/services/auth.dart';
 import 'package:chat_app/services/database.dart';
 import 'package:chat_app/views/conversation_screen.dart';
 import 'package:chat_app/views/viewJoinRequests.dart';
 import 'package:chat_app/views/createChatRoom.dart';
 import 'package:chat_app/views/search.dart';
-import 'package:chat_app/widgets/widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoom extends StatefulWidget {
@@ -34,7 +31,9 @@ class _ChatRoomState extends State<ChatRoom> {
               return myChatTile(snapshot.data.docs[index].data()["hashTag"],
                   snapshot.data.docs[index].data()["groupId"],
                   snapshot.data.docs[index].data()["admin"],
-                  snapshot.data.docs[index].data()['joinRequests']);
+                  snapshot.data.docs[index].data()['joinRequests'],
+                  snapshot.data.docs[index].data()['chatRoomState']
+              );
               });
         }else{
           return Center(
@@ -47,7 +46,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
 
 
-  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList){
+  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList, String groupState){
     int numOfRequests = joinRequestsList.length;
     return GestureDetector(
       onTap: (){
@@ -90,11 +89,14 @@ class _ChatRoomState extends State<ChatRoom> {
               },
               child: Container(
                   decoration: BoxDecoration(
-                  color: Colors.green,
+                  border: Border.all(
+                    color: Colors.orangeAccent,
+                    width: 3.0
+                  ),
                   borderRadius: BorderRadius.circular(30)
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Text("$numOfRequests Join Request", style: simpleTextStyle(),)
+                  child: Text("$numOfRequests Join Request", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),)
               ),
             ) : SizedBox.shrink() : SizedBox.shrink()
           ],

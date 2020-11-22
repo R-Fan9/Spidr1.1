@@ -107,10 +107,17 @@ class _SearchScreenState extends State<SearchScreen> {
             Spacer(),
             GestureDetector(
               onTap: (){
-                !requested ?
-                chatRoomState == "public" ? widget.imgFile == null ? joinChat(hashTag, groupId, Constants.myName, admin) :
-                fileUpload(widget.imgFile, hashTag, groupId, admin, myChat) :
-                requestJoin(groupId, Constants.myName) : null;
+
+                if(myChat){
+                  fileUpload(widget.imgFile, hashTag, groupId, admin, myChat);
+                }else{
+                  if(chatRoomState == 'private'){
+                    !requested ? requestJoin(groupId, Constants.myName) : null;
+                  }else{
+                    widget.imgFile == null ? joinChat(hashTag, groupId, Constants.myName, admin) :
+                    fileUpload(widget.imgFile, hashTag, groupId, admin, myChat);
+                  }
+                }
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -187,58 +194,61 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: appBarMain(context),
-      body: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                children: [
-                  Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              colors: [
-                                const Color(0xfffb934d),
-                                const Color(0xfffb934d)
-                              ]
-                          ),
-                          borderRadius: BorderRadius.circular(40)
-                      ),
-                      padding: EdgeInsets.all(12),
-                      child: Image.asset("assets/images/search.png")
-                  ),
-                  SizedBox(width: 15,),
-                  Expanded(child: TextField(
-                    controller: widget.tag.isNotEmpty ? tagEditingController : null,
-                    onChanged: (String val){
-                      searchChats(val);
-                    },
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-
-                      hintText: "Search for group",
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.orange),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.orange),
-                      ),
-                      border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.orange),
-                      ),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: appBarMain(context),
+        body: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              Container(
+                color: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Row(
+                  children: [
+                    Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xfffb934d),
+                                  const Color(0xfffb934d)
+                                ]
+                            ),
+                            borderRadius: BorderRadius.circular(40)
+                        ),
+                        padding: EdgeInsets.all(12),
+                        child: Image.asset("assets/images/search.png")
                     ),
-                  )),
-                ],
-              ),
-        ),
-            Expanded(child: groupChatsList()),
-          ],
+                    SizedBox(width: 15,),
+                    Expanded(child: TextField(
+                      controller: widget.tag.isNotEmpty ? tagEditingController : null,
+                      onChanged: (String val){
+                        searchChats(val);
+                      },
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+
+                        hintText: "Search for group",
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.orange),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.orange),
+                        ),
+                        border: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.orange),
+                        ),
+                      ),
+                    )),
+                  ],
+                ),
+          ),
+              Expanded(child: groupChatsList()),
+            ],
+          ),
         ),
       ),
     );

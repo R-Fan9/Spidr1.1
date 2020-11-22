@@ -90,7 +90,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         width: MediaQuery.of(context).size.width,
         alignment: isSendByMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: imgUrl == "" ? EdgeInsets.symmetric(horizontal: 24, vertical: 16) : EdgeInsets.symmetric(horizontal: 8, vertical: 8),
 
             decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -147,7 +147,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       fontSize: 20
                   ),
                   caseSensitive: false,
-                ) : Card(
+                ) : ClipRRect(
+                    borderRadius: BorderRadius.circular(23.0),
                     child: Column(
                       children: [
                         Container(

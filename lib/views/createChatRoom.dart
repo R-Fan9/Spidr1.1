@@ -52,12 +52,13 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: appBarMain(context),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Container(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: appBarMain(context),
+        body: Container(
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
@@ -104,6 +105,7 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
                     },
                   ),
                   RadioListTile(
+                    activeColor: Colors.orange,
                     value: 2,
                     groupValue: state,
                     title: Text("Private"),
@@ -127,8 +129,9 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
                   decoration: BoxDecoration(
                       gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF00C853),
-                            const Color(0xFF00C853)
+                            Colors.orange,
+                            Colors.orange,
+
                           ]
                       ),
                       borderRadius: BorderRadius.circular(30)
