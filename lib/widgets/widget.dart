@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 // App Bar Widget
 Widget appBarMain(BuildContext context){
   return AppBar(
-    title: Image.asset("assets/images/spidr_logo.jpg", height: 50,),
+    title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
   );
 }
 

@@ -66,6 +66,7 @@ class _PreviewImageScreenState extends State<PreviewImageScreen> {
                         child: Column(
                           children: [
                             TextFormField(
+                              autofocus: true,
                               validator: (val){
                                 return val.isEmpty ? "Sorry invalid hashtag" : null;
                               },

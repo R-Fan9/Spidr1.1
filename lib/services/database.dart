@@ -24,13 +24,19 @@ class DatabaseMethods{
         .get();
   }
 
+  getUserById() async{
+    return await userCollection
+        .doc(uid)
+        .get();
+  }
+
   uploadUserInfo(userMap) async{
     return await userCollection
     .doc(uid)
     .set(userMap);
   }
 
-  Future<String> createChatRoom(String hashTag, String username, String chatRoomState, int time, List searchKeys) async{
+  Future<String> createGroupChat(String hashTag, String username, String chatRoomState, int time, List searchKeys, double groupCapacity) async{
 
     DocumentReference groupChatDocRef = await groupChatCollection.add({
       'hashTag': hashTag,
@@ -41,6 +47,8 @@ class DatabaseMethods{
       'createdAt':time,
       'searchKeys':searchKeys,
       'joinRequests':[],
+      'waitList':[],
+      'groupCapacity':groupCapacity
     });
 
     await groupChatDocRef.update({
@@ -91,13 +99,21 @@ class DatabaseMethods{
 
   getMyChats(String username) async{
     return await groupChatCollection
-        .where('members', arrayContains: uid + "_" + username).snapshots();
+        .where('members', arrayContains: uid + "_" + username)
+        .snapshots();
+  }
+
+  getSpectatingChats(String username) async{
+    return await groupChatCollection
+        .where('waitList', arrayContains: uid + "_" + username)
+        .snapshots();
   }
 
   getGroupChatById(String groupId) async{
     return await groupChatCollection
         .doc(groupId).get();
   }
+
 
   getAllGroupChats() async{
     return await groupChatCollection.orderBy('createdAt', descending: true)
@@ -143,28 +159,32 @@ class DatabaseMethods{
 
   }
 
-  Future requestJoinGroup(String groupId, String username) async{
+  Future requestJoinGroup(String groupId, String username, String email, String search) async{
     DocumentReference groupDocRef = groupChatCollection.doc(groupId);
     DocumentSnapshot groupDocSnapshot = await groupDocRef.get();
 
     List<dynamic> joinRequests = await groupDocSnapshot.data()['joinRequests'];
-    if(!joinRequests.contains(uid + '_' + username)){
+    if(!joinRequests.contains(uid + '_'+ email + '_' + username)){
       await groupDocRef.update({
-        'joinRequests': FieldValue.arrayUnion([uid + '_' + username])
+        'joinRequests': FieldValue.arrayUnion([uid + '_' + email + '_' + username])
       });
     }
 
-    return getAllGroupChats();
+    if(search.isNotEmpty){
+      return searchGroupChats(search);
+    }else{
+      return getAllGroupChats();
+    }
   }
 
-  Future declineJoinRequest(String groupId, String username) async{
+  Future declineJoinRequest(String groupId, String userInfo) async{
     DocumentReference groupDocRef = groupChatCollection.doc(groupId);
     DocumentSnapshot groupDocSnapshot = await groupDocRef.get();
 
     List<dynamic> joinRequests = await groupDocSnapshot.data()['joinRequests'];
-    if(joinRequests.contains(uid + '_' + username)){
+    if(joinRequests.contains(uid + '_' + userInfo)){
       await groupDocRef.update({
-        'joinRequests': FieldValue.arrayRemove([uid + '_' + username])
+        'joinRequests': FieldValue.arrayRemove([uid + '_' + userInfo])
       });
     }
 
@@ -182,6 +202,31 @@ class DatabaseMethods{
     });
   }
 
+  Future putOnWaitList(String groupId, String username, String search) async {
+    DocumentReference groupDocRef = groupChatCollection.doc(groupId);
+    DocumentSnapshot groupDocSnapshot = await groupDocRef.get();
+
+    DocumentReference userDocRef = userCollection.doc(uid);
+
+    List<dynamic> waitList = await groupDocSnapshot.data()['waitList'];
+    if(!waitList.contains(uid + '_' + username)){
+      await groupDocRef.update({
+        'waitList': FieldValue.arrayUnion([uid + '_' + username])
+      });
+    }
+
+    if(groupDocSnapshot.data()['chatRoomState'] == 'public'){
+      DocumentSnapshot userDocSnapshot = await userDocRef.get();
+      await userDocRef.update({'spectating':userDocSnapshot.data()['spectating']+1});
+    }
+
+    if(search.isNotEmpty){
+      return searchGroupChats(search);
+    }else{
+      return getAllGroupChats();
+    }
+  }
+
 
   Future toggleGroupMembership(String groupId, String username, String hashTag, String actionType) async{
     DocumentReference userDocRef = userCollection.doc(uid);
@@ -194,19 +239,51 @@ class DatabaseMethods{
       }
       break;
       case "LEAVE_GROUP":{
+        DocumentSnapshot groupDocSnapshot = await groupDocRef.get();
+        List<dynamic> waitList = await groupDocSnapshot.data()['waitList'];
+        String groupState = groupDocSnapshot.data()['chatRoomState'];
         await userDocRef.update({
           'joinedChats': FieldValue.arrayRemove([groupId + '_' + hashTag])
         });
         await groupDocRef.update({
           'members': FieldValue.arrayRemove([uid + '_' + username])
         });
+
+        if(waitList.length > 0){
+
+          String userId = waitList[0].substring(0, waitList[0].indexOf('_'));
+          String userName = waitList[0].substring(waitList[0].indexOf('_')+1);
+
+          DocumentReference userOnWLDocRef = userCollection.doc(userId);
+
+          if(groupState == 'public'){
+            await groupDocRef.update({
+              'members': FieldValue.arrayUnion([userId + '_' + userName])
+            });
+            await userOnWLDocRef.update({
+              'joinedChats': FieldValue.arrayUnion([groupId + '_' + hashTag])
+            });
+          }else{
+            DocumentSnapshot userOnWLSnapshot = await userOnWLDocRef.get();
+            await groupDocRef.update({
+              'joinRequests': FieldValue.arrayUnion([userId + '_' + userOnWLSnapshot.data()['email'] + '_' + userName])
+            });
+          }
+
+          await groupDocRef.update({
+            'waitList': FieldValue.arrayRemove([userId + '_' + userName])
+          });
+
+        }
+
+
       }
       break;
       case "ACCEPT_JOIN_REQ":{
         await groupDocRef.update({
           'joinRequests': FieldValue.arrayRemove([uid + '_' + username])
         });
-        joinGroupChat(userDocRef, groupDocRef, groupId, hashTag, username);
+        joinGroupChat(userDocRef, groupDocRef, groupId, hashTag, username.substring(username.indexOf('_')+1));
       }
       break;
       case "ADD_USER":{

@@ -77,7 +77,7 @@ class _SignInState extends State<SignIn> {
                   children: [
                     Container(
                       child: new Image.asset(
-                        'assets/images/Spidrstart.png',
+                        'assets/images/SpidrStart.png',
                         width: MediaQuery.of(context).size.width/2,
                         height: MediaQuery.of(context).size.width/2,
                         fit: BoxFit.cover,

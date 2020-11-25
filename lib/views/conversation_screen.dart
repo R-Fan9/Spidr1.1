@@ -20,7 +20,8 @@ class ConversationScreen extends StatefulWidget {
   final String hashTag;
   final String admin;
   final String uid;
-  ConversationScreen(this.groupChatId, this.hashTag, this.admin, this.uid);
+  final bool spectate;
+  ConversationScreen(this.groupChatId, this.hashTag, this.admin, this.uid, this.spectate);
 
   @override
   _ConversationScreenState createState() => _ConversationScreenState();
@@ -121,12 +122,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
               children: [
                 !isSendByMe ? Row(
                   children: [
-                    Text(sendBy, style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w300
-                    )),
-                    SizedBox(width: 4,),
+                    Container(
+                      margin: EdgeInsets.all(10.0),
+                      child: Text(sendBy, style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300
+                      )),
+                    ),
                     userId + "_" + sendBy == admin ? Container(
                       width: 10,
                       height: 10,
@@ -329,7 +332,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 });
               },
             ),
-            IconButton(
+            !widget.spectate ? IconButton(
                 icon: widget.admin == widget.uid + "_" + Constants.myName ? Icon(Icons.add): Icon(Icons.more_horiz),
                 iconSize: 30.0,
                 color: Colors.white,
@@ -339,7 +342,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   )) : Navigator.push(context, MaterialPageRoute(
                       builder: (context) => GroupChatSettingsScreen(widget.groupChatId, widget.uid, widget.hashTag)));
                 },
-            )
+            ) : SizedBox.shrink()
           ],
           title: Text(widget.hashTag,
           style: TextStyle(
@@ -368,7 +371,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 child: chatMessageList(),
               ),
             ),
-            _buildMessageComposer(),
+            !widget.spectate ? _buildMessageComposer() : SizedBox.shrink(),
           ],
         ),
       )

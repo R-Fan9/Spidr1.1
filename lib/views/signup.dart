@@ -31,7 +31,8 @@ class _SignUpState extends State<SignUp> {
         'email': emailTextEditingController.text,
         'password': passwordTextEditingController.text,
         'myChats':[],
-        'joinedChats':[]
+        'joinedChats':[],
+        "spectating":0
       };
 
       HelperFunctions.saveUserEmailSharedPreference(emailTextEditingController.text);
@@ -65,7 +66,6 @@ class _SignUpState extends State<SignUp> {
           child: SingleChildScrollView(
 
             child: Container(
-
               height: MediaQuery.of(context).size.height - 75,
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -78,7 +78,7 @@ class _SignUpState extends State<SignUp> {
                       child: Column(
                         children: [
                           new Image.asset(
-                            'assets/images/Spidrstart.png',
+                            'assets/images/SpidrStart.png',
                             width: MediaQuery.of(context).size.width/2.5,
                             height: MediaQuery.of(context).size.width/2.5,
                             fit: BoxFit.cover,

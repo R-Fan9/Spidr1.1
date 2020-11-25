@@ -16,23 +16,27 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
 
   List<dynamic> listOfRequests;
 
-  acceptRequest(String groupId, String username, String hashTag, String userId){
-    DatabaseMethods(uid: userId).toggleGroupMembership(groupId, username, hashTag, "ACCEPT_JOIN_REQ").then((val) {
+  acceptRequest(String groupId, String userInfo, String hashTag, String userId){
+    DatabaseMethods(uid: userId).toggleGroupMembership(groupId, userInfo, hashTag, "ACCEPT_JOIN_REQ").then((val) {
       setState(() {
         listOfRequests = val;
       });
     });
   }
 
-  declineRequest(String groupId, String username, String userId){
-    DatabaseMethods(uid: userId).declineJoinRequest(groupId, username).then((val) {
+  declineRequest(String groupId, String userInfo, String userId){
+    DatabaseMethods(uid: userId).declineJoinRequest(groupId, userInfo).then((val) {
       setState(() {
         listOfRequests = val;
       });
     });
   }
 
-  Widget joinRequestTile(String groupId, String hashTag, String userId, String username){
+  Widget joinRequestTile(String groupId, String hashTag, String userId, String userInfo){
+    print(userInfo);
+    String userName = userInfo.substring(userInfo.indexOf('_')+1);
+    String userEmail = userInfo.substring(0, userInfo.indexOf('_'));
+
     return Container(
       color: Colors.black,
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -41,13 +45,15 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(username, style: simpleTextStyle(),),
+                Text(userName, style: simpleTextStyle(),),
+
+                Text(userEmail, style: simpleTextStyle(),),
               ],
             ),
             Spacer(),
             GestureDetector(
               onTap: (){
-                declineRequest(groupId, username, userId);
+                declineRequest(groupId, userInfo, userId);
               },
               child: Container(
                   decoration: BoxDecoration(
@@ -61,7 +67,7 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             SizedBox(width: 10,),
             GestureDetector(
               onTap: (){
-                acceptRequest(groupId, username, hashTag, userId);
+                acceptRequest(groupId, userInfo, hashTag, userId);
               },
               child: Container(
                   decoration: BoxDecoration(
@@ -97,12 +103,12 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
             Expanded(child: ListView.builder(
               itemCount: listOfRequests.length,
                 itemBuilder: (context, index){
-                int reqIndex = listOfRequests.length - index - 1;
-                String userInfo = listOfRequests[reqIndex];
-                return joinRequestTile(widget.groupId,
-                  widget.hashTag,
-                  userInfo.substring(0, userInfo.indexOf('_')),
-                  userInfo.substring(userInfo.indexOf('_') + 1)
+                String userInfo = listOfRequests[index];
+                return joinRequestTile(
+                    widget.groupId,
+                    widget.hashTag,
+                    userInfo.substring(0, userInfo.indexOf('_')),
+                    userInfo.substring(userInfo.indexOf('_') + 1)
                 );
                 }))
           ],

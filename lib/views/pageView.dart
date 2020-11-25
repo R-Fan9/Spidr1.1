@@ -21,6 +21,7 @@ class _PageViewScreenState extends State<PageViewScreen> {
     User _user = await FirebaseAuth.instance.currentUser;
     Constants.myName = await HelperFunctions.getUserNameInSharedPreference();
     Constants.myUserId = _user.uid;
+    Constants.myEmail = _user.email;
     return _user;
   }
 

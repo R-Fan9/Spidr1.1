@@ -18,40 +18,70 @@ class _ChatRoomState extends State<ChatRoom> {
   AuthMethods authMethods = new AuthMethods();
 
   Stream myChatsStream;
+  Stream mySpectateStream;
 
-  Widget myGroupChatList(){
+  int spectating = 0;
+
+
+  Widget mySpectTile(String hashTag, String groupId, String admin, String groupState, bool waitListed){
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(
+            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed)));
+      },
+      child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: Colors.orangeAccent,
+                width: 3.0),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          child: Text(hashTag, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent),)),
+    );
+  }
+
+  Widget mySpectChatList(){
     return StreamBuilder(
-      stream: myChatsStream,
+        stream: mySpectateStream,
         builder: (context, snapshot){
-        if(snapshot.hasData){
-          return ListView.builder(
-              itemCount: snapshot.data.docs.length,
-              shrinkWrap: true,
-              itemBuilder: (context, index) {
-              return myChatTile(snapshot.data.docs[index].data()["hashTag"],
-                  snapshot.data.docs[index].data()["groupId"],
-                  snapshot.data.docs[index].data()["admin"],
-                  snapshot.data.docs[index].data()['joinRequests'],
-                  snapshot.data.docs[index].data()['chatRoomState']
-              );
-              });
-        }else{
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          if(snapshot.hasData){
+            if(snapshot.data.docs.length > 0){
+              return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: snapshot.data.docs.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return snapshot.data.docs[index].data()["chatRoomState"] == "public" ? mySpectTile(
+                      snapshot.data.docs[index].data()["hashTag"],
+                      snapshot.data.docs[index].data()["groupId"],
+                      snapshot.data.docs[index].data()["admin"],
+                      snapshot.data.docs[index].data()['chatRoomState'],
+                      true,
+                    ) : SizedBox.shrink();
+                  });
+            }else{
+              return noGroupWidget();
+            }
+
+          }else{
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
         }
-      }
     );
   }
 
 
 
-  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList, String groupState){
+  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList, String groupState, bool waitListed){
     int numOfRequests = joinRequestsList.length;
     return GestureDetector(
       onTap: (){
         Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId)));
+            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed)));
       },
       child: Container(
         color: Colors.white,
@@ -105,11 +135,49 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 
+  Widget myGroupChatList(){
+    return StreamBuilder(
+        stream: myChatsStream,
+        builder: (context, snapshot){
+          if(snapshot.hasData){
+            return ListView.builder(
+                itemCount: snapshot.data.docs.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return myChatTile(snapshot.data.docs[index].data()["hashTag"],
+                    snapshot.data.docs[index].data()["groupId"],
+                    snapshot.data.docs[index].data()["admin"],
+                    snapshot.data.docs[index].data()['joinRequests'],
+                    snapshot.data.docs[index].data()['chatRoomState'],
+                    false,
+                  );
+                });
+          }else{
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        }
+    );
+  }
+
+  getUser() async{
+    await DatabaseMethods(uid: Constants.myUserId).getUserById().then((val){
+      if(val.data()['spectating'] > 0) {
+        setState(() {
+          spectating = val.data()['spectating'];
+        });
+        getSpectChats();
+      }
+    });
+  }
+
 
   @override
   void initState() {
     // TODO: implement initState
     getGroupChats();
+    getUser();
     super.initState();
   }
 
@@ -120,7 +188,7 @@ class _ChatRoomState extends State<ChatRoom> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text("You've not joined any group"),
+            Text("You are not spectating any group"),
           ],
         )
     );
@@ -135,11 +203,20 @@ class _ChatRoomState extends State<ChatRoom> {
     });
   }
 
+  getSpectChats() async {
+    DatabaseMethods(uid: Constants.myUserId).getSpectatingChats(Constants.myName)
+        .then((val) {
+      setState(() {
+        mySpectateStream = val;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset("assets/images/spidr_logo.jpg", height: 50,),
+        title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
         actions: [
           GestureDetector(
             onTap: (){
@@ -157,10 +234,38 @@ class _ChatRoomState extends State<ChatRoom> {
       ),
       body: Container(
         color: Colors.white,
-        child: Column(
-          children: [
-            Expanded(child: myGroupChatList()),
-          ],
+        child: Container(
+
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
+            children: [
+              spectating > 0 ? Container(
+                  decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(30)
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  margin: EdgeInsets.all(15.0),
+                  child: Text("Spectating", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+              ) : SizedBox.shrink(),
+              spectating > 0 ? Container(
+                height: 70.0,
+                  child: mySpectChatList()
+              ) : SizedBox.shrink(),
+              Container(
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                      borderRadius: BorderRadius.circular(30)
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  margin: EdgeInsets.all(15.0),
+                  child: Text("My Chats", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+              ),
+              Expanded(child: myGroupChatList()),
+
+            ],
+          ),
         ),
       ),
       floatingActionButton: Column(
