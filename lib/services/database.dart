@@ -58,7 +58,7 @@ class DatabaseMethods{
 
     DocumentReference userDocRef = userCollection.doc(uid);
     await userDocRef.update({
-      'myChats': FieldValue.arrayUnion([{'groupId':groupChatDocRef.id, 'hashTag': hashTag}])
+      'myChats': FieldValue.arrayUnion([groupChatDocRef.id + '_' + hashTag])
     });
 
     return groupChatDocRef.id;
@@ -75,7 +75,7 @@ class DatabaseMethods{
     return getConversationMessages(groupChatId);
   }
 
-  addConversationMessages(String groupChatId, String message, String username, String dateTime, int time, String imgUrl){
+  addConversationMessages(String groupChatId, String message, String username, String dateTime, int time, Map imgObj){
     groupChatCollection
         .doc(groupChatId)
         .collection("chats")
@@ -85,7 +85,7 @@ class DatabaseMethods{
       'userId': uid,
       'dateTime': dateTime,
       'time':time,
-      'imgUrl':imgUrl
+      'imgObj':imgObj
     }).catchError((e) {print(e.toString());});
   }
 
@@ -216,8 +216,7 @@ class DatabaseMethods{
     }
 
     if(groupDocSnapshot.data()['chatRoomState'] == 'public'){
-      DocumentSnapshot userDocSnapshot = await userDocRef.get();
-      await userDocRef.update({'spectating':userDocSnapshot.data()['spectating']+1});
+      await userDocRef.update({'spectating':FieldValue.arrayUnion([groupId])});
     }
 
     if(search.isNotEmpty){

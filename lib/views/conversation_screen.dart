@@ -9,6 +9,7 @@ import 'package:dynamic_text_highlighting/dynamic_text_highlighting.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
+import 'package:full_screen_image/full_screen_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart'as Path;
@@ -49,7 +50,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
       DateTime now = DateTime.now();
       String formattedDate = DateFormat('kk:mm:a').format(now);
 
-      DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, messageController.text, Constants.myName, formattedDate, now.microsecondsSinceEpoch, '');
+      DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, messageController.text,
+          Constants.myName, formattedDate, now.microsecondsSinceEpoch, null);
       messageController.text = "";
     }
   }
@@ -62,7 +64,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
-  Widget messageTile(message, imgUrl, sendBy, dateTime, userId, isSendByMe, messageId, admin){
+  Widget messageTile(message, Map imgObj, sendBy, dateTime, userId, isSendByMe, messageId, admin){
     return GestureDetector(
       onLongPress: (){
         isSendByMe ? showMenu(
@@ -91,7 +93,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
         width: MediaQuery.of(context).size.width,
         alignment: isSendByMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-            padding: imgUrl == "" ? EdgeInsets.symmetric(horizontal: 24, vertical: 16) : EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: imgObj == null ? EdgeInsets.symmetric(horizontal: 24, vertical: 16) :
+            EdgeInsets.symmetric(horizontal: 8, vertical: 8),
 
             decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -120,52 +123,66 @@ class _ConversationScreenState extends State<ConversationScreen> {
             child:Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                !isSendByMe ? Row(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.all(10.0),
-                      child: Text(sendBy, style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w300
-                      )),
-                    ),
-                    userId + "_" + sendBy == admin ? Container(
-                      width: 10,
-                      height: 10,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Theme.of(context).primaryColor
+                !isSendByMe ? Container(
+                    margin: EdgeInsets.fromLTRB(0.0,5.0,0.0,10.0),
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: sendBy+" ",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w300
+                            )
+                          ),
+                          userId + "_" + sendBy == admin ? WidgetSpan(
+                            child: Icon(Icons.circle, size: 14, color: Colors.orange,),
+                          ) : TextSpan(),
+                        ]
                       ),
-                    ):SizedBox.shrink()
-                  ],
-                ) : SizedBox.shrink(),
+                    ),
+                  ) : SizedBox.shrink(),
                 message != '' ? DynamicTextHighlighting(
                   text: message,
                   highlights: highlightWords,
-                  color: Colors.orangeAccent,
+                  color: Colors.blueAccent,
                   style: TextStyle(
                       color: isSendByMe ? Colors.white : Colors.black,
                       fontSize: 20
                   ),
                   caseSensitive: false,
-                ) : ClipRRect(
-                    borderRadius: BorderRadius.circular(23.0),
-                    child: Column(
-                      children: [
-                        Container(
-                          child: AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: Image.network(
-                              imgUrl,
+                ) : FullScreenWidget(
+                  child: Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Image.network(
+                              imgObj['imgUrl'],
                               fit: BoxFit.cover
-                            ),
                           ),
-                        )
-                      ],
+                        ),
+                      ),
                     ),
-                )
+                  )
+
+                ),
+                imgObj != null ? imgObj['caption'].isNotEmpty ?
+                Container(
+                  margin: EdgeInsets.fromLTRB(0.0,10.0,10.0,10.0),
+                  child: DynamicTextHighlighting(
+                    text: imgObj['caption'],
+                    highlights: highlightWords,
+                    color: Colors.blueAccent,
+                    style: TextStyle(
+                        color: isSendByMe ? Colors.white : Colors.black,
+                        fontSize: 20
+                    ),
+                    caseSensitive: false,
+                  ),
+                ) : SizedBox.shrink() : SizedBox.shrink()
               ],
             )
         ),
@@ -183,7 +200,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
           itemCount: snapshot.data.docs.length,
             itemBuilder: (context, index) {
             return messageTile(snapshot.data.docs[index].data()["message"],
-            snapshot.data.docs[index].data()["imgUrl"],
+            snapshot.data.docs[index].data()["imgObj"],
             snapshot.data.docs[index].data()["sendBy"],
             snapshot.data.docs[index].data()["formattedDate"],
             snapshot.data.docs[index].data()["userId"],
@@ -206,11 +223,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   }
 
-  sendImage(String imgUrl) {
+  sendImage(Map imgObj) {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('kk:mm:a').format(now);
 
-    DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, '', Constants.myName, formattedDate, now.microsecondsSinceEpoch, imgUrl);
+    DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, '',
+        Constants.myName, formattedDate, now.microsecondsSinceEpoch, imgObj);
   }
 
   Future uploadImage() async {
@@ -223,7 +241,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       ref.putFile(imgFile).then((value){
         value.ref.getDownloadURL().then((val){
-          sendImage(val);
+          sendImage({"imgUrl":val,"caption":""});
         });
       });
     }
@@ -246,6 +264,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             },
           ),
           Expanded(child: TextField(
+            maxLines: null,
             controller: messageController,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration.collapsed(

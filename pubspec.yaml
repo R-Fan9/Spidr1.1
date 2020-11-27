@@ -39,6 +39,7 @@ dependencies:
   image_picker: ^0.6.7+14
   path: ^1.7.0
   path_provider: ^1.6.24
+  full_screen_image: ^1.0.2
 
 dev_dependencies:
   flutter_test:

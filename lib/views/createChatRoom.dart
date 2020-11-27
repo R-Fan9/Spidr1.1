@@ -40,7 +40,7 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
       List<String> searchKeys = [];
       String temp = "";
       for(int i = 0; i < hashTagController.text.length; i++){
-        temp = temp + hashTagController.text[i];
+        temp = temp + hashTagController.text[i].toUpperCase();
         searchKeys.add(temp);
       }
 
@@ -92,8 +92,9 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
                           style: TextStyle(color: Colors.black),
                           controller: hashTagController,
                           decoration: InputDecoration(
-                            hintText: "#GROUPCHAT",
+                            hintText: "GROUPCHAT",
                             labelText: "Group Name",
+                            icon: Icon(Icons.tag, color: Colors.orange),
                             enabledBorder: UnderlineInputBorder(
                               borderSide: BorderSide(color: Colors.orange),
                             ),

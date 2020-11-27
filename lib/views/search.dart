@@ -16,8 +16,8 @@ import 'package:path/path.dart'as Path;
 class SearchScreen extends StatefulWidget {
   final String uid;
   final String tag;
-  final File imgFile;
-  SearchScreen(this.uid, this.tag, this.imgFile);
+  final Map imgObj;
+  SearchScreen(this.uid, this.tag, this.imgObj);
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
@@ -78,11 +78,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   }
 
-  Future sendImgOrJoin(imgUrl, String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState) async{
+  Future sendImgOrJoin(Map img, String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState) async{
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('kk:mm:a').format(now);
 
-    await DatabaseMethods(uid: widget.uid).addConversationMessages(groupId, '', Constants.myName, formattedDate, now.microsecondsSinceEpoch, imgUrl);
+    await DatabaseMethods(uid: widget.uid).addConversationMessages(groupId, '',
+        Constants.myName, formattedDate, now.microsecondsSinceEpoch, img);
     if(!myChat){
       joinChat(hashTag, groupId, Constants.myName, admin, numOfMem, groupCapacity, groupState);
     }
@@ -96,15 +97,15 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
 
-  fileUpload(File imgFile, String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState){
-    String fileName = Path.basename(imgFile.path);
+  fileUpload(String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState){
+    String fileName = Path.basename(widget.imgObj["imgFile"].path);
     Reference ref = FirebaseStorage.instance
         .ref()
         .child('chats/${widget.uid}_${Constants.myName}/$fileName');
 
-    ref.putFile(imgFile).then((value){
+    ref.putFile(widget.imgObj["imgFile"]).then((value){
       value.ref.getDownloadURL().then((val){
-        sendImgOrJoin(val, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, groupState);
+        sendImgOrJoin({"imgUrl":val,"caption":widget.imgObj['caption']}, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, groupState);
       });
     });
   }
@@ -143,16 +144,16 @@ class _SearchScreenState extends State<SearchScreen> {
               onTap: (){
 
                 if(myChat){
-                  fileUpload(widget.imgFile, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState);
+                  fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState);
                 }else{
                   if(chatRoomState == 'private'){
                     !waitListed ? !requested ? requestJoin(groupId, numOfMem, groupCapacity, chatRoomState, hashTag, admin) : null : null;
                   }else{
-                    if(widget.imgFile == null){
+                    if(widget.imgObj == null){
                       joinChat(hashTag, groupId, Constants.myName, admin, numOfMem, groupCapacity, chatRoomState);
                     }else{
                       numOfMem < groupCapacity ?
-                      !waitListed ? fileUpload(widget.imgFile, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState) :
+                      !waitListed ? fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState) :
                       null : goOnWaitListAndOrSpectate(groupId, hashTag, admin, chatRoomState);
                     }
                   }
@@ -164,11 +165,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         color: Colors.redAccent,
                         width: 3.0
                     ) : null,
-                    color: !myChat ? !waitListed ? !requested ? widget.imgFile != null && numOfMem == groupCapacity ? Colors.redAccent : Colors.blue : Colors.grey : null : Theme.of(context).primaryColor,
+                    color: !myChat ? !waitListed ? !requested ? widget.imgObj != null && numOfMem == groupCapacity ? Colors.redAccent : Colors.blue : Colors.grey : null : Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(30)
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Text(!waitListed ? !myChat ? !requested ? widget.imgFile != null && numOfMem == groupCapacity ? chatRoomState == "private" ?
+                child: Text(!waitListed ? !myChat ? !requested ? widget.imgObj != null && numOfMem == groupCapacity ? chatRoomState == "private" ?
                 "Full | Waitlist" : "Full | Spectate" :
                 chatRoomState == "public" ? "Join" : "Request" : "Requested" : "Send" :
                 chatRoomState == 'private' ? "Waitlisted" : "Spectating",
@@ -194,7 +195,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 itemCount: snapshot.data.docs.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index){
-                  return widget.imgFile == null ? !snapshot.data.docs[index].data()['members'].contains(widget.uid + '_' + Constants.myName) ?
+                  return widget.imgObj == null ? !snapshot.data.docs[index].data()['members'].contains(widget.uid + '_' + Constants.myName) ?
                   searchTile(
                       false,
                       snapshot.data.docs[index].data()['members'].length,
@@ -253,7 +254,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
     if(groupState == "public"){
       Navigator.of(context).pop();
-      if(widget.imgFile != null){
+      if(widget.imgObj != null){
         Navigator.of(context).pop();
       }
       Navigator.push(context, MaterialPageRoute(

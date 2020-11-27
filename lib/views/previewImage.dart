@@ -18,16 +18,20 @@ class PreviewImageScreen extends StatefulWidget {
 class _PreviewImageScreenState extends State<PreviewImageScreen> {
   File imgFile;
   TextEditingController hashTagEditingController = new TextEditingController();
+  TextEditingController captionEditingController = new TextEditingController();
+
+  bool addCaption = false;
 
   final formKey = GlobalKey<FormState>();
 
   tagGroupChats(){
     if(formKey.currentState.validate()){
       String hashTag = hashTagEditingController.text;
+      String caption = captionEditingController.text;
       DatabaseMethods(uid: widget.uid).tagGroupChats(hashTag.toUpperCase()).then((val){
         if(!val.docs.isEmpty){
           Navigator.push(context, MaterialPageRoute(
-              builder: (context) => SearchScreen(widget.uid, hashTag, imgFile)
+              builder: (context) => SearchScreen(widget.uid, hashTag, {"imgFile":imgFile, "caption": caption})
           ));
         }else{
           showAlertDialog();
@@ -36,6 +40,7 @@ class _PreviewImageScreenState extends State<PreviewImageScreen> {
 
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,21 +64,46 @@ class _PreviewImageScreenState extends State<PreviewImageScreen> {
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Container(
-                      color: Colors.black87,
                       alignment: Alignment.center,
                       child: Form(
                         key: formKey,
                         child: Column(
                           children: [
-                            TextFormField(
-                              autofocus: true,
-                              validator: (val){
-                                return val.isEmpty ? "Sorry invalid hashtag" : null;
-                              },
-                              controller: hashTagEditingController,
-                              style: simpleTextStyle(),
-                              decoration: textFieldInputDecoration("#"),
+                            Container(
+                              color: Colors.black,
+                              child: TextFormField(
+                                autofocus: true,
+                                validator: (val){
+                                  return val.isEmpty ? "Sorry invalid hashtag" : null;
+                                },
+                                controller: hashTagEditingController,
+                                style: TextStyle(color: Colors.orange, fontSize: 20),
+                                decoration: InputDecoration(
+                                  icon: Icon(Icons.tag, color: Colors.orange,),
+                                ),
+                              ),
                             ),
+                            addCaption ? Container(
+                              color: Colors.white70,
+                              child: TextFormField(
+                                maxLines: null,
+                                validator: (val){
+                                  return val.isEmpty ? "Sorry invalid caption" : null;
+                                },
+                                controller: captionEditingController,
+                                style: TextStyle(color: Colors.black, fontSize: 20),
+                                decoration: InputDecoration(
+                                  icon: Icon(Icons.mode_outlined, color: Colors.black,),
+                                    focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.black)
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.black)
+                                    )
+                                ),
+                              ),
+                            ) : SizedBox.shrink(),
+
                           ],
                         ),
                       ),
@@ -100,7 +130,25 @@ class _PreviewImageScreenState extends State<PreviewImageScreen> {
               ],
             ),
           ),
-        )
+        ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+
+        children: [
+          FloatingActionButton(
+            backgroundColor: Colors.black,
+            child: Icon(Icons.mode_outlined),
+            onPressed: (){
+              setState(() {
+                addCaption = !addCaption;
+              });
+              if(!addCaption){
+                captionEditingController.text = "";
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 

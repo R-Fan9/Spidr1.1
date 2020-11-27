@@ -20,7 +20,7 @@ class _ChatRoomState extends State<ChatRoom> {
   Stream myChatsStream;
   Stream mySpectateStream;
 
-  int spectating = 0;
+  List spectating = [];
 
 
   Widget mySpectTile(String hashTag, String groupId, String admin, String groupState, bool waitListed){
@@ -163,7 +163,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
   getUser() async{
     await DatabaseMethods(uid: Constants.myUserId).getUserById().then((val){
-      if(val.data()['spectating'] > 0) {
+      if(val.data()['spectating'].length > 0) {
         setState(() {
           spectating = val.data()['spectating'];
         });
@@ -240,7 +240,7 @@ class _ChatRoomState extends State<ChatRoom> {
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              spectating > 0 ? Container(
+              spectating.length > 0 ? Container(
                   decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(30)
@@ -249,7 +249,7 @@ class _ChatRoomState extends State<ChatRoom> {
                   margin: EdgeInsets.all(15.0),
                   child: Text("Spectating", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
               ) : SizedBox.shrink(),
-              spectating > 0 ? Container(
+              spectating.length > 0 ? Container(
                 height: 70.0,
                   child: mySpectChatList()
               ) : SizedBox.shrink(),
