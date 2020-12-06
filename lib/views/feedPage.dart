@@ -240,12 +240,12 @@ class _FeedPageScreenState extends State<FeedPageScreen> {
                       ),
                       IconButton(
                           icon: Icon(Icons.share),
-                          color: Colors.orange,
+                          color: senderId == Constants.myUserId ? Colors.orange : Colors.grey,
                           iconSize: 30.0,
                           onPressed: (){
-                            getBytes(imgObj['imgPath']).then((bytes){
+                            senderId == Constants.myUserId ? getBytes(imgObj['imgPath']).then((bytes){
                               Share.file('Share via', imgObj['imgName'], bytes.buffer.asUint8List(), '*/*');
-                            });
+                            }) : null;
                           })
                     ],
                   ),
