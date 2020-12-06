@@ -1,34 +1,34 @@
 {
   "project_info": {
-    "project_number": "185650376735",
-    "firebase_url": "https://chatapp-583fc.firebaseio.com",
-    "project_id": "chatapp-583fc",
-    "storage_bucket": "chatapp-583fc.appspot.com"
+    "project_number": "177642017236",
+    "firebase_url": "https://the-spidr-app.firebaseio.com",
+    "project_id": "the-spidr-app",
+    "storage_bucket": "the-spidr-app.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:185650376735:android:08f3128813323789c9e52a",
+        "mobilesdk_app_id": "1:177642017236:android:630ea334dcb565e8448641",
         "android_client_info": {
-          "package_name": "com.example.chat_app"
+          "package_name": "com.Brane.Spidr"
         }
       },
       "oauth_client": [
         {
-          "client_id": "185650376735-9dbgo16t42v9ncc82sva32t73s2276g1.apps.googleusercontent.com",
+          "client_id": "177642017236-1pkpghi13olroqs05latufu44ej3v14b.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBngKZJ3DEIMX9W8Lj-TkEwWM8tPCvGeMw"
+          "current_key": "AIzaSyB9hvt2KnNGlJGbd7zx_E24SO7mKxvkcC8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "185650376735-9dbgo16t42v9ncc82sva32t73s2276g1.apps.googleusercontent.com",
+              "client_id": "177642017236-1pkpghi13olroqs05latufu44ej3v14b.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

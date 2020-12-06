@@ -1,7 +1,7 @@
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/conversation_screen.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/conversation_screen.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/cupertino.dart';
 import "package:flutter/material.dart";
 import 'package:intl/intl.dart';
@@ -77,7 +77,7 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
                 children: [
                   ClipOval(
                     child: Image.asset(
-                      'assets/images/SpidrLogo.png',
+                      'assets/images/SpidrNet.png',
                       width: MediaQuery.of(context).size.width/5,
                       height: MediaQuery.of(context).size.width/5,
                       fit: BoxFit.cover,

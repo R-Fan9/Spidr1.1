@@ -1,5 +1,5 @@
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/material.dart';
 
 class JoinRequestsScreen extends StatefulWidget {

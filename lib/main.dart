@@ -1,7 +1,7 @@
-import 'package:chat_app/helper/authenticate.dart';
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/views/camera.dart';
-import 'package:chat_app/views/pageView.dart';
+import 'package:SpidrApp/helper/authenticate.dart';
+import 'package:SpidrApp/helper/helperFunctions.dart';
+import 'package:SpidrApp/views/camera.dart';
+import 'package:SpidrApp/views/pageView.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: userIsLoggedIn != null ?  userIsLoggedIn ? PageViewScreen(0): Authenticate()
+      home: userIsLoggedIn != null ?  userIsLoggedIn ? PageViewScreen(1): Authenticate()
           : Container(
       child: Center(
         child: Authenticate(),

@@ -1,12 +1,14 @@
 import 'package:camera/camera.dart';
-import 'package:chat_app/services/camera.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/services/camera.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/material.dart';
 
 
 class AppCameraScreen extends StatefulWidget {
   final String uid;
-  AppCameraScreen(this.uid);
+  final String personalChatId;
+  final String groupChatId;
+  AppCameraScreen(this.uid, this.personalChatId, this.groupChatId);
 
   @override
   _AppCameraScreenState createState() => _AppCameraScreenState();
@@ -106,7 +108,9 @@ class _AppCameraScreenState extends State<AppCameraScreen> {
             children: [
               FloatingActionButton(
                 onPressed: (){
-                  CameraMethods().onCaptureForApp(context, cameraController, widget.uid);
+                  widget.personalChatId.isEmpty && widget.groupChatId.isEmpty ?
+                  CameraMethods().onCaptureForApp(context, cameraController, widget.uid) :
+                  CameraMethods().onCaptureForChat(context, cameraController, widget.personalChatId, widget.groupChatId);
                 },
                 backgroundColor: Colors.transparent,
                 child: Icon(Icons.circle, color: Theme.of(context).primaryColor,),

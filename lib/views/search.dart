@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/conversation_screen.dart';
-import 'package:chat_app/widgets/widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/conversation_screen.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +24,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Stream groupChatsSnapshot;
   TextEditingController tagEditingController = new TextEditingController();
+
+  bool uploading = false;
 
   getAllChats(){
     DatabaseMethods(uid: widget.uid).getAllGroupChats().then((val){
@@ -80,7 +80,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future sendImgOrJoin(Map img, String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState) async{
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('kk:mm:a').format(now);
+    String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
 
     await DatabaseMethods(uid: widget.uid).addConversationMessages(groupId, '',
         Constants.myName, formattedDate, now.microsecondsSinceEpoch, img);
@@ -98,14 +98,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
 
   fileUpload(String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState){
+    setState(() {
+      uploading = true;
+    });
     String fileName = Path.basename(widget.imgObj["imgFile"].path);
     Reference ref = FirebaseStorage.instance
         .ref()
-        .child('chats/${widget.uid}_${Constants.myName}/$fileName');
+        .child('groupChats/${widget.uid}_${Constants.myName}/$fileName');
 
     ref.putFile(widget.imgObj["imgFile"]).then((value){
       value.ref.getDownloadURL().then((val){
-        sendImgOrJoin({"imgUrl":val,"caption":widget.imgObj['caption']}, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, groupState);
+        sendImgOrJoin({"imgUrl":val, "imgName": fileName, "imgPath":widget.imgObj["imgFile"].path, "caption":widget.imgObj['caption']}, hashTag, groupId, admin, myChat, numOfMem, groupCapacity, groupState);
       });
     });
   }
@@ -144,7 +147,7 @@ class _SearchScreenState extends State<SearchScreen> {
               onTap: (){
 
                 if(myChat){
-                  fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState);
+                  !uploading ? fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState) : null;
                 }else{
                   if(chatRoomState == 'private'){
                     !waitListed ? !requested ? requestJoin(groupId, numOfMem, groupCapacity, chatRoomState, hashTag, admin) : null : null;
@@ -153,7 +156,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       joinChat(hashTag, groupId, Constants.myName, admin, numOfMem, groupCapacity, chatRoomState);
                     }else{
                       numOfMem < groupCapacity ?
-                      !waitListed ? fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState) :
+                      !waitListed ? !uploading ? fileUpload(hashTag, groupId, admin, myChat, numOfMem, groupCapacity, chatRoomState) : null :
                       null : goOnWaitListAndOrSpectate(groupId, hashTag, admin, chatRoomState);
                     }
                   }
@@ -296,61 +299,74 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget loadingIndicator = uploading ? Container(
+      width: 70.0,
+      height: 70.0,
+      child: Padding(
+        padding: EdgeInsets.all(5.0),
+        child: Center(child: CircularProgressIndicator(),),
+      ),
+    ):SizedBox.shrink();
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: appBarMain(context),
-        body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              Container(
-                color: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                child: Row(
-                  children: [
-                    Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xfffb934d),
-                                  const Color(0xfffb934d)
-                                ]
+        body: Stack(
+          children: [
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xfffb934d),
+                                      const Color(0xfffb934d)
+                                    ]
+                                ),
+                                borderRadius: BorderRadius.circular(40)
                             ),
-                            borderRadius: BorderRadius.circular(40)
+                            padding: EdgeInsets.all(12),
+                            child: Image.asset("assets/images/search.png")
                         ),
-                        padding: EdgeInsets.all(12),
-                        child: Image.asset("assets/images/search.png")
-                    ),
-                    SizedBox(width: 15,),
-                    Expanded(child: TextField(
-                      controller: tagEditingController,
-                      onChanged: (String val){
-                        searchChats(val);
-                      },
-                      style: TextStyle(color: Colors.black),
-                      decoration: InputDecoration(
+                        SizedBox(width: 15,),
+                        Expanded(child: TextField(
+                          controller: tagEditingController,
+                          onChanged: (String val){
+                            searchChats(val);
+                          },
+                          style: TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
 
-                        hintText: "Search for group",
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orange),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orange),
-                        ),
-                        border: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.orange),
-                        ),
-                      ),
-                    )),
-                  ],
-                ),
-          ),
-              Expanded(child: groupChatsList()),
-            ],
-          ),
+                            hintText: "Search for group",
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.orange),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.orange),
+                            ),
+                            border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.orange),
+                            ),
+                          ),
+                        )),
+                      ],
+                    ),
+              ),
+                  Expanded(child: groupChatsList()),
+                ],
+              ),
+            ),
+            Align(child: loadingIndicator, alignment: FractionalOffset.center,),
+          ],
         ),
       ),
     );

@@ -1,12 +1,18 @@
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/database.dart';
 import 'package:camera/camera.dart';
-import 'package:chat_app/views/previewImage.dart';
+import 'package:SpidrApp/views/previewImage.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart'as Path;
+
 
 class CameraMethods{
 
@@ -28,8 +34,8 @@ class CameraMethods{
     initCamera(selectedCamera);
   }
 
-  /*
-  onCaptureForChat(context, CameraController cameraController, Map groupInfo) async{
+
+  onCaptureForChat(context, CameraController cameraController, String personalChatId, String groupChatId) async{
     try{
       final Directory extDir = await getApplicationDocumentsDirectory();
       final String dirPath = '${extDir.path}/Pictures';
@@ -38,11 +44,40 @@ class CameraMethods{
       final String filepath = '$dirPath/$imgName';
 
       await cameraController.takePicture(filepath).then((value) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => PreviewChatImageScreen(filepath,
-            groupInfo['groupId'],
-            groupInfo['uid'],
-            groupInfo['hashTag'],
-            groupInfo['admin'])));
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
+
+        String fileName = Path.basename(filepath);
+
+        Reference ref;
+
+        if(personalChatId.isNotEmpty){
+          ref = FirebaseStorage.instance
+              .ref()
+              .child('personalChats/${Constants.myUserId}_${Constants.myName}/$fileName');
+
+          ref.putFile(File(filepath)).then((value){
+            value.ref.getDownloadURL().then((val){
+
+              DatabaseMethods(uid: Constants.myUserId).addPersonalMessage(personalChatId,
+                  "", Constants.myName, formattedDate,
+                  now.microsecondsSinceEpoch, {"imgUrl":val, "imgName": fileName, "imgPath":filepath, "caption":""});
+            });
+          });
+        }else{
+          ref = FirebaseStorage.instance
+              .ref()
+              .child('groupChats/${Constants.myUserId}_${Constants.myName}/$fileName');
+
+          ref.putFile(File(filepath)).then((value){
+            value.ref.getDownloadURL().then((val){
+              DatabaseMethods(uid: Constants.myUserId).addConversationMessages(groupChatId,
+                  "", Constants.myName, formattedDate, now.microsecondsSinceEpoch, {"imgUrl":val, "imgName": fileName, "imgPath":filepath, "caption":""});
+            });
+          });
+        }
+
+        Navigator.of(context).pop();
 
       });
 
@@ -50,7 +85,7 @@ class CameraMethods{
       showCameraException(e);
     }
   }
-   */
+
 
   onCaptureForApp(context, CameraController cameraController, String uid) async{
     try{

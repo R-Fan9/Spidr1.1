@@ -1,9 +1,9 @@
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/services/auth.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/camera.dart';
-import 'package:chat_app/views/pageView.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/helper/helperFunctions.dart';
+import 'package:SpidrApp/services/auth.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/camera.dart';
+import 'package:SpidrApp/views/pageView.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/material.dart';
 
 class SignUp extends StatefulWidget {
@@ -32,7 +32,8 @@ class _SignUpState extends State<SignUp> {
         'password': passwordTextEditingController.text,
         'myChats':[],
         'joinedChats':[],
-        "spectating":0
+        "spectating":[],
+        'personalChats':[]
       };
 
       HelperFunctions.saveUserEmailSharedPreference(emailTextEditingController.text);
@@ -46,7 +47,7 @@ class _SignUpState extends State<SignUp> {
         DatabaseMethods(uid: val.uid).uploadUserInfo(userInfoMap);
         HelperFunctions.saveUserLoggedInSharedPreference(true);
         Navigator.pushReplacement(context, MaterialPageRoute(
-              builder: (context) => PageViewScreen(0)
+              builder: (context) => PageViewScreen(1)
             ));
       });
 

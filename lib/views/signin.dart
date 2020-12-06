@@ -1,9 +1,9 @@
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/services/auth.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/camera.dart';
-import 'package:chat_app/views/pageView.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/helper/helperFunctions.dart';
+import 'package:SpidrApp/services/auth.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/camera.dart';
+import 'package:SpidrApp/views/pageView.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +50,7 @@ class _SignInState extends State<SignIn> {
           );
 
           Navigator.pushReplacement(context, MaterialPageRoute(
-              builder: (context) => PageViewScreen(0)));
+              builder: (context) => PageViewScreen(1)));
         } else {
           setState(() {
             isLoading = false;

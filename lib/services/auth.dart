@@ -1,5 +1,5 @@
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/model/chatUser.dart';
+import 'package:SpidrApp/helper/helperFunctions.dart';
+import 'package:SpidrApp/model/chatUser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthMethods{

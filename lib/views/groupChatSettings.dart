@@ -1,8 +1,8 @@
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/chatRoomsScreen.dart';
-import 'package:chat_app/views/pageView.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/chatRoomsScreen.dart';
+import 'package:SpidrApp/views/pageView.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +22,7 @@ class _GroupChatSettingsScreenState extends State<GroupChatSettingsScreen> {
     Navigator.of(context).pop();
     Navigator.of(context).pop();
     Navigator.pushReplacement(context, MaterialPageRoute(
-        builder: (context) => PageViewScreen(1)
+        builder: (context) => PageViewScreen(0)
     ));
   }
 

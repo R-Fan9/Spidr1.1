@@ -1,7 +1,8 @@
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/helper/helperFunctions.dart';
-import 'package:chat_app/views/camera.dart';
-import 'package:chat_app/views/chatRoomsScreen.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/helper/helperFunctions.dart';
+import 'package:SpidrApp/views/camera.dart';
+import 'package:SpidrApp/views/chatRoomsScreen.dart';
+import 'package:SpidrApp/views/feedPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,6 @@ class _PageViewScreenState extends State<PageViewScreen> {
     return _user;
   }
 
-
   @override
   void initState() {
     // TODO: implement initState
@@ -46,8 +46,9 @@ class _PageViewScreenState extends State<PageViewScreen> {
     return PageView(
       controller: pageController,
       children: [
-        AppCameraScreen(uid),
-        ChatRoom()
+        ChatRoom(),
+        AppCameraScreen(uid, "", ""),
+        FeedPageScreen(),
       ],
     );
   }

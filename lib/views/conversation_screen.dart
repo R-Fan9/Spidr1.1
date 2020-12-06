@@ -1,10 +1,11 @@
 import 'dart:io';
 
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/camera.dart';
-import 'package:chat_app/views/groupChatSettings.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/camera.dart';
+import 'package:SpidrApp/views/groupChatSettings.dart';
+import 'package:SpidrApp/views/personalChatScreen.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:dynamic_text_highlighting/dynamic_text_highlighting.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,6 +36,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
   List<String> highlightWords = [];
   bool searchKeyWord = false;
 
+  TextEditingController replyEditingController = new TextEditingController();
+
+  final formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     DatabaseMethods(uid: widget.uid).getConversationMessages(widget.groupChatId).then((val) {
@@ -42,13 +47,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
         chatMessageStream = val;
       });
     });
+
     super.initState();
   }
 
   sendMessage(){
     if(messageController.text.isNotEmpty){
       DateTime now = DateTime.now();
-      String formattedDate = DateFormat('kk:mm:a').format(now);
+      String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
 
       DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, messageController.text,
           Constants.myName, formattedDate, now.microsecondsSinceEpoch, null);
@@ -64,12 +70,56 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
-  Widget messageTile(message, Map imgObj, sendBy, dateTime, userId, isSendByMe, messageId, admin){
+
+  replyMessage(String userId, String userName, String text, String dateTime, int sendTime, Map imgMap, String messageId)async{
+    if(formKey.currentState.validate()){
+      String replyMessage = replyEditingController.text;
+      DateTime now = DateTime.now();
+      String formattedDateTime = DateFormat('yyyy-MM-dd hh:mm a').format(now);
+      Map<String, dynamic> replyMap = {
+        'text': replyMessage,
+        'sender':Constants.myName,
+        'senderId': widget.uid,
+        'formattedDateTime': formattedDateTime,
+        'sendTime':now.microsecondsSinceEpoch,
+        'imgMap': null};
+
+      await DatabaseMethods(uid: widget.uid).createPersonalChat(userId, userName, text, dateTime, sendTime, imgMap, replyMap, widget.groupChatId, messageId).then((personalChatId){
+
+        DatabaseMethods(uid: widget.uid).updateConversationMessages(widget.groupChatId, messageId, personalChatId, widget.uid+"_"+Constants.myName, "ADD_REPLY");
+        Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => PersonalChatScreen(personalChatId, userName, userId, false)));
+      });
+
+    }
+  }
+
+  Widget messageTile(String message,
+      Map imgObj,
+      String sendBy,
+      String dateTime,
+      int time,
+      String userId,
+      bool isSendByMe,
+      String messageId,
+      String admin,
+      List replies){
+
+    bool replied = false;
+    int numOfReplies = 0;
+    for(var reply in replies){
+      if(reply.containsKey(widget.uid+"_"+Constants.myName)){
+        replied = true;
+      }
+      if(!reply["open"]){
+        numOfReplies ++;
+      }
+    }
     return GestureDetector(
       onLongPress: (){
         isSendByMe ? showMenu(
             context: context,
-            position: RelativeRect.fromLTRB(0.0, 600.0, 300.0, 0.0),
+            position: RelativeRect.fromLTRB(0.0, MediaQuery.of(context).size.height, 0.0, 0.0),
             items: <PopupMenuEntry>[
               PopupMenuItem(
                 value:1,
@@ -85,7 +135,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
               }else{
                 deleteMessage(messageId);
               }
-        }) : null;
+        }) : showMenu(
+            context: context,
+            position: RelativeRect.fromLTRB(0.0, MediaQuery.of(context).size.height, 0.0, 0.0),
+            items: [
+              PopupMenuItem(
+                value: 1,
+                  child: Row(
+                    children: [
+                      Icon(!replied ? Icons.reply : Icons.close),
+                      Text(!replied ? "Reply" : "Replied")
+                    ],
+                  )
+              )
+            ]).then((value){
+              if(value == null){
+                return;
+              }else{
+                !replied ? showReplyBox(userId, sendBy, message, dateTime, time, imgObj, messageId ) : null;
+              }
+        });
       },
       child: Container(
         padding: EdgeInsets.only(left: isSendByMe ? 24 : 8, right: isSendByMe ? 8 : 24),
@@ -182,7 +251,27 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     ),
                     caseSensitive: false,
                   ),
-                ) : SizedBox.shrink() : SizedBox.shrink()
+                ) : SizedBox.shrink() : SizedBox.shrink(),
+
+                isSendByMe ? numOfReplies > 0 ? GestureDetector(
+                  onTap: (){
+                    showRepliedUsers(replies, messageId, widget.groupChatId, context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: Colors.white,
+                          width: 3.0),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                    margin: EdgeInsets.fromLTRB(0.0,10.0,10.0,0.0),
+                    child: Text(
+                      numOfReplies > 1 ? numOfReplies.toString() + " users replied" : numOfReplies.toString() + " user replied",
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                ):SizedBox.shrink() : SizedBox.shrink()
               ],
             )
         ),
@@ -200,13 +289,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
           itemCount: snapshot.data.docs.length,
             itemBuilder: (context, index) {
             return messageTile(snapshot.data.docs[index].data()["message"],
-            snapshot.data.docs[index].data()["imgObj"],
-            snapshot.data.docs[index].data()["sendBy"],
-            snapshot.data.docs[index].data()["formattedDate"],
-            snapshot.data.docs[index].data()["userId"],
-            snapshot.data.docs[index].data()["sendBy"] == Constants.myName,
-            snapshot.data.docs[index].id,
-            widget.admin);
+                snapshot.data.docs[index].data()["imgObj"],
+                snapshot.data.docs[index].data()["sendBy"],
+                snapshot.data.docs[index].data()["dateTime"],
+                snapshot.data.docs[index].data()["time"],
+                snapshot.data.docs[index].data()["userId"],
+                snapshot.data.docs[index].data()["sendBy"] == Constants.myName,
+                snapshot.data.docs[index].id,
+                widget.admin,
+                snapshot.data.docs[index].data()['replies']
+            );
             }) : Container();
       },
     );
@@ -225,7 +317,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   sendImage(Map imgObj) {
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('kk:mm:a').format(now);
+    String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
 
     DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, '',
         Constants.myName, formattedDate, now.microsecondsSinceEpoch, imgObj);
@@ -237,11 +329,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       String fileName = Path.basename(imgFile.path);
       Reference ref = FirebaseStorage.instance
           .ref()
-          .child('chats/${widget.uid}_${Constants.myName}/$fileName');
+          .child('groupChats/${widget.uid}_${Constants.myName}/$fileName');
 
       ref.putFile(imgFile).then((value){
         value.ref.getDownloadURL().then((val){
-          sendImage({"imgUrl":val,"caption":""});
+          sendImage({"imgUrl":val, "imgName":fileName,"imgPath":imgFile.path, "caption":""});
         });
       });
     }
@@ -261,6 +353,15 @@ class _ConversationScreenState extends State<ConversationScreen> {
             color: Theme.of(context).primaryColor,
             onPressed: () {
                 uploadImage();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.camera_alt),
+            iconSize: 25.0,
+            color: Theme.of(context).primaryColor,
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => AppCameraScreen(Constants.myUserId, "", widget.groupChatId)));
             },
           ),
           Expanded(child: TextField(
@@ -332,6 +433,43 @@ class _ConversationScreenState extends State<ConversationScreen> {
     );
   }
 
+  showReplyBox(String userId, String userName, String text, String dateTime, int sendTime, Map imgMap, String messageId){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text("Message"),
+            content: Form(
+              key: formKey,
+              child: Container(
+                child: TextFormField(
+                  autofocus: true,
+                  validator: (val){
+                    return val.isEmpty ? "Sorry, the reply message can not be empty" : null;
+                  },
+                  controller: replyEditingController,
+                  style: TextStyle(color: Colors.black, fontSize: 14),
+                ),
+              ),
+            ),
+            actions: [
+              FlatButton(
+                  onPressed:(){
+                    replyMessage(userId, userName, text, dateTime, sendTime, imgMap, messageId);
+                  },
+                  child: Text("SEND")
+              ),
+              FlatButton(
+                  onPressed:(){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("CANCEL")
+              )
+            ],
+          );
+        }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

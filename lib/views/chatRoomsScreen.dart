@@ -1,11 +1,12 @@
-import 'package:chat_app/helper/authenticate.dart';
-import 'package:chat_app/helper/constants.dart';
-import 'package:chat_app/services/auth.dart';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/conversation_screen.dart';
-import 'package:chat_app/views/viewJoinRequests.dart';
-import 'package:chat_app/views/createChatRoom.dart';
-import 'package:chat_app/views/search.dart';
+import 'package:SpidrApp/helper/authenticate.dart';
+import 'package:SpidrApp/helper/constants.dart';
+import 'package:SpidrApp/services/auth.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/conversation_screen.dart';
+import 'package:SpidrApp/views/personalReplies.dart';
+import 'package:SpidrApp/views/viewJoinRequests.dart';
+import 'package:SpidrApp/views/createChatRoom.dart';
+import 'package:SpidrApp/views/search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -82,7 +83,7 @@ class _ChatRoomState extends State<ChatRoom> {
       onTap: (){
         Navigator.push(context, MaterialPageRoute(
             builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed)));
-      },
+        },
       child: Container(
         color: Colors.white,
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -142,6 +143,7 @@ class _ChatRoomState extends State<ChatRoom> {
           if(snapshot.hasData){
             return ListView.builder(
                 itemCount: snapshot.data.docs.length,
+                physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
                   return myChatTile(snapshot.data.docs[index].data()["hashTag"],
@@ -214,86 +216,97 @@ class _ChatRoomState extends State<ChatRoom> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
-        actions: [
-          GestureDetector(
-            onTap: (){
-              authMethods.signOut();
-              Navigator.pushReplacement(context, MaterialPageRoute(
-                  builder: (context) => Authenticate()
-              ));
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Icon(Icons.exit_to_app),
-            ),
-          )
-        ]
-      ),
-      body: Container(
-        color: Colors.white,
-        child: Container(
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-
-            children: [
-              spectating.length > 0 ? Container(
-                  decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(30)
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  margin: EdgeInsets.all(15.0),
-                  child: Text("Spectating", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
-              ) : SizedBox.shrink(),
-              spectating.length > 0 ? Container(
-                height: 70.0,
-                  child: mySpectChatList()
-              ) : SizedBox.shrink(),
-              Container(
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                      borderRadius: BorderRadius.circular(30)
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  margin: EdgeInsets.all(15.0),
-                  child: Text("My Chats", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 5.0),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
+          actions: [
+            GestureDetector(
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => PersonalRepliesScreen()
+                ));
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Icon(Icons.contacts),
               ),
-              Expanded(child: myGroupChatList()),
-
-            ],
+            ),
+            GestureDetector(
+              onTap: (){
+                authMethods.signOut();
+                Navigator.pushReplacement(context, MaterialPageRoute(
+                    builder: (context) => Authenticate()
+                ));
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Icon(Icons.exit_to_app),
+              ),
+            )
+          ]
+        ),
+        body: Container(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                spectating.length > 0 ? Container(
+                    decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(30)
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    margin: EdgeInsets.all(15.0),
+                    child: Text("Spectating", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+                ) : SizedBox.shrink(),
+                spectating.length > 0 ? Container(
+                  height: 70.0,
+                    child: mySpectChatList()
+                ) : SizedBox.shrink(),
+                Container(
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                        borderRadius: BorderRadius.circular(30)
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    margin: EdgeInsets.all(15.0),
+                    child: Text("My Chats", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+                ),
+                myGroupChatList()
+              ],
+            ),
           ),
         ),
-      ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          SizedBox(height: 10,),
-          FloatingActionButton(
-            backgroundColor: Colors.orangeAccent,
-            heroTag: "cgc",
-            child: Icon(Icons.add),
-            onPressed: (){
-              Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => CreateChatRoom(Constants.myUserId)
-              ));
-            },
-          ),
-          SizedBox(height: 10,),
-          FloatingActionButton(
-            backgroundColor: Colors.orangeAccent,
-            heroTag: "ssn",
-            child: Icon(Icons.search),
-            onPressed: (){
-              Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => SearchScreen(Constants.myUserId, "", null)
-              ));
-            },
-          ),
-        ],
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            SizedBox(height: 10,),
+            FloatingActionButton(
+              backgroundColor: Colors.orangeAccent,
+              heroTag: "cgc",
+              child: Icon(Icons.add),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => CreateChatRoom(Constants.myUserId)
+                ));
+              },
+            ),
+            SizedBox(height: 10,),
+            FloatingActionButton(
+              backgroundColor: Colors.orangeAccent,
+              heroTag: "ssn",
+              child: Icon(Icons.search),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => SearchScreen(Constants.myUserId, "", null)
+                ));
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

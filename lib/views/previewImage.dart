@@ -1,9 +1,11 @@
 import 'dart:io';
-import 'package:chat_app/services/database.dart';
-import 'package:chat_app/views/createChatRoom.dart';
-import 'package:chat_app/views/search.dart';
-import 'package:chat_app/widgets/widget.dart';
+import 'package:SpidrApp/services/database.dart';
+import 'package:SpidrApp/views/createChatRoom.dart';
+import 'package:SpidrApp/views/search.dart';
+import 'package:SpidrApp/widgets/widget.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart'as Path;
+
 
 class PreviewImageScreen extends StatefulWidget {
   final String imgPath;
@@ -31,7 +33,7 @@ class _PreviewImageScreenState extends State<PreviewImageScreen> {
       DatabaseMethods(uid: widget.uid).tagGroupChats(hashTag.toUpperCase()).then((val){
         if(!val.docs.isEmpty){
           Navigator.push(context, MaterialPageRoute(
-              builder: (context) => SearchScreen(widget.uid, hashTag, {"imgFile":imgFile, "caption": caption})
+              builder: (context) => SearchScreen(widget.uid, hashTag, {"imgFile":imgFile, "imgName":Path.basename(widget.imgPath), "caption": caption})
           ));
         }else{
           showAlertDialog();
