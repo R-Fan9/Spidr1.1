@@ -1,4 +1,4 @@
-# chat_app
+# SpidrApp
 
 A new Flutter application.
 
