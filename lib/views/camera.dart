@@ -8,7 +8,8 @@ class AppCameraScreen extends StatefulWidget {
   final String uid;
   final String personalChatId;
   final String groupChatId;
-  AppCameraScreen(this.uid, this.personalChatId, this.groupChatId);
+  final String hashTag;
+  AppCameraScreen(this.uid, this.personalChatId, this.groupChatId, this.hashTag);
 
   @override
   _AppCameraScreenState createState() => _AppCameraScreenState();
@@ -110,7 +111,7 @@ class _AppCameraScreenState extends State<AppCameraScreen> {
                 onPressed: (){
                   widget.personalChatId.isEmpty && widget.groupChatId.isEmpty ?
                   CameraMethods().onCaptureForApp(context, cameraController, widget.uid) :
-                  CameraMethods().onCaptureForChat(context, cameraController, widget.personalChatId, widget.groupChatId);
+                  CameraMethods().onCaptureForChat(context, cameraController, widget.personalChatId, widget.groupChatId, widget.hashTag);
                 },
                 backgroundColor: Colors.transparent,
                 child: Icon(Icons.circle, color: Theme.of(context).primaryColor,),

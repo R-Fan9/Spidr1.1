@@ -29,11 +29,12 @@ class _SignUpState extends State<SignUp> {
       Map<String, dynamic> userInfoMap = {
         'name': userNameTextEditingController.text,
         'email': emailTextEditingController.text,
-        'password': passwordTextEditingController.text,
+        'profileImg': null,
         'myChats':[],
         'joinedChats':[],
         "spectating":[],
-        'personalChats':[]
+        'personalChats':[],
+        'pushToken':''
       };
 
       HelperFunctions.saveUserEmailSharedPreference(emailTextEditingController.text);

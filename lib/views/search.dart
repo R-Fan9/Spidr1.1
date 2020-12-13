@@ -52,11 +52,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   }
 
-  joinChat(String hashTag, String groupId, String username, String admin, int numOfMem, double groupCapacity, String groupState) async{
+  joinChat(String hashTag, String groupId, String username, String admin, int numOfMem, double groupCapacity, String groupState){
     if(numOfMem < groupCapacity){
-      await DatabaseMethods(uid: widget.uid).toggleGroupMembership(groupId, username, hashTag, "JOIN_PUB_GROUP_CHAT");
+      DatabaseMethods(uid: widget.uid).toggleGroupMembership(groupId, username, hashTag, "JOIN_PUB_GROUP_CHAT");
+
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, false)
+          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, false, true)
       ));
     }else{
       showAlertDialog(groupState, groupId, hashTag, admin);
@@ -81,16 +82,20 @@ class _SearchScreenState extends State<SearchScreen> {
   Future sendImgOrJoin(Map img, String hashTag, String groupId, String admin, bool myChat, int numOfMem, double groupCapacity, groupState) async{
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
+    bool join = false;
 
-    await DatabaseMethods(uid: widget.uid).addConversationMessages(groupId, '',
+    await DatabaseMethods(uid: widget.uid).addConversationMessages(groupId, hashTag, '',
         Constants.myName, formattedDate, now.microsecondsSinceEpoch, img);
+    DatabaseMethods(uid: widget.uid).addNotification(groupId, hashTag);
+
     if(!myChat){
       joinChat(hashTag, groupId, Constants.myName, admin, numOfMem, groupCapacity, groupState);
+      join = true;
     }
     Navigator.of(context).pop();
     if(myChat){
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, false)
+          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, false, join)
       ));
     }
 
@@ -261,7 +266,7 @@ class _SearchScreenState extends State<SearchScreen> {
         Navigator.of(context).pop();
       }
       Navigator.push(context, MaterialPageRoute(
-          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, true)
+          builder: (context) => ConversationScreen(groupId, hashTag, admin, widget.uid, true, false)
       ));
     }
 

@@ -256,7 +256,7 @@ class _PersonalChatScreenState extends State<PersonalChatScreen> {
             color: Theme.of(context).primaryColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => AppCameraScreen(Constants.myUserId, widget.personalChatId, "")));
+                  builder: (context) => AppCameraScreen(Constants.myUserId, widget.personalChatId, "","")));
             },
           ),
           Expanded(child: TextField(

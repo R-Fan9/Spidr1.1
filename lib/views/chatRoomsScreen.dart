@@ -28,12 +28,12 @@ class _ChatRoomState extends State<ChatRoom> {
     return GestureDetector(
       onTap: (){
         Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed)));
+            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed, false)));
       },
       child: Container(
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
                 color: Colors.orangeAccent,
                 width: 3.0),
           ),
@@ -54,13 +54,13 @@ class _ChatRoomState extends State<ChatRoom> {
                   itemCount: snapshot.data.docs.length,
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
-                    return snapshot.data.docs[index].data()["chatRoomState"] == "public" ? mySpectTile(
+                    return mySpectTile(
                       snapshot.data.docs[index].data()["hashTag"],
                       snapshot.data.docs[index].data()["groupId"],
                       snapshot.data.docs[index].data()["admin"],
                       snapshot.data.docs[index].data()['chatRoomState'],
                       true,
-                    ) : SizedBox.shrink();
+                    );
                   });
             }else{
               return noGroupWidget();
@@ -77,62 +77,80 @@ class _ChatRoomState extends State<ChatRoom> {
 
 
 
-  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList, String groupState, bool waitListed){
+  Widget myChatTile(String hashTag, String groupId, String admin, List<dynamic> joinRequestsList, String groupState, int newMessages, bool waitListed){
     int numOfRequests = joinRequestsList.length;
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(
-            builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed)));
+        onTap: (){
+          Navigator.push(context, MaterialPageRoute(
+              builder: (context) => ConversationScreen(groupId, hashTag, admin, Constants.myUserId, waitListed, false)));
         },
-      child: Container(
-        color: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Row(
-          children: [
-            Container(
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: Colors.orangeAccent,
-                  borderRadius: BorderRadius.circular(40)
-              ),
-              child: Text("${hashTag.substring(1,2).toUpperCase()}",style:TextStyle(color:Colors.white),),
-            ),
-            SizedBox(width: 8,),
-            Text(hashTag, style: TextStyle(color: Colors.orange,fontWeight: FontWeight.bold,),),
-            SizedBox(width: 8,),
-            admin == Constants.myUserId + '_' + Constants.myName ? Container(
-              width: 10,
-              height: 10,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColor
-              ),
-            ) : SizedBox.shrink(),
-            Spacer(),
-            numOfRequests > 0 ? admin == Constants.myUserId + '_' + Constants.myName ? GestureDetector(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => JoinRequestsScreen(joinRequestsList, groupId, hashTag)
-                ));
-              },
-              child: Container(
-                  decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.orangeAccent,
-                    width: 3.0
+        child: Container(
+          color: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                        color: Colors.orangeAccent,
+                        borderRadius: BorderRadius.circular(40)
+                    ),
+                    child: Text("${hashTag.substring(1,2).toUpperCase()}",style:TextStyle(color:Colors.white),),
                   ),
-                  borderRadius: BorderRadius.circular(30)
-                  ),
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Text("$numOfRequests Join Request", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),)
+                  newMessages > 0 ? Positioned(
+                      child: Container(
+                        height: 15,
+                        width: 15,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(40)
+                        ),
+                        child: Text("$newMessages",style:TextStyle(color:Colors.white, fontWeight: FontWeight.bold),),
+                      )
+                  ) : SizedBox.shrink()
+                ],
+                overflow: Overflow.visible,
+
               ),
-            ) : SizedBox.shrink() : SizedBox.shrink()
-          ],
-        ),
-      )
+              SizedBox(width: 8,),
+              Text(hashTag, style: TextStyle(color: Colors.orange,fontWeight: FontWeight.bold,),),
+              SizedBox(width: 8,),
+              admin == Constants.myUserId + '_' + Constants.myName ? Container(
+                width: 10,
+                height: 10,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).primaryColor
+                ),
+              ) : SizedBox.shrink(),
+              Spacer(),
+              numOfRequests > 0 ? admin == Constants.myUserId + '_' + Constants.myName ? GestureDetector(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => JoinRequestsScreen(joinRequestsList, groupId, hashTag)
+                  ));
+                },
+                child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.orangeAccent,
+                            width: 3.0
+                        ),
+                        borderRadius: BorderRadius.circular(30)
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Text("$numOfRequests Join Request", style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold),)
+                ),
+              ) : SizedBox.shrink() : SizedBox.shrink()
+            ],
+          ),
+        )
     );
   }
 
@@ -146,13 +164,25 @@ class _ChatRoomState extends State<ChatRoom> {
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-                  return myChatTile(snapshot.data.docs[index].data()["hashTag"],
+                  String admin = snapshot.data.docs[index].data()["admin"];
+                  return Constants.myUserId + '_' + Constants.myName == admin ? myChatTile(
+                    snapshot.data.docs[index].data()["hashTag"],
                     snapshot.data.docs[index].data()["groupId"],
-                    snapshot.data.docs[index].data()["admin"],
+                    admin,
                     snapshot.data.docs[index].data()['joinRequests'],
                     snapshot.data.docs[index].data()['chatRoomState'],
+                    snapshot.data.docs[index].data()['newMessages'],
                     false,
-                  );
+                  ):myChatTile(
+                    snapshot.data.docs[index].data()["hashTag"],
+                    snapshot.data.docs[index].data()["groupId"],
+                    admin,
+                    [],
+                    snapshot.data.docs[index].data()['chatRoomState'],
+                    snapshot.data.docs[index].data()['newMessages'],
+                    false,
+                  )
+                  ;
                 });
           }else{
             return Center(
@@ -163,7 +193,7 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 
-  getUser() async{
+  getSpectating() async{
     await DatabaseMethods(uid: Constants.myUserId).getUserById().then((val){
       if(val.data()['spectating'].length > 0) {
         setState(() {
@@ -179,7 +209,7 @@ class _ChatRoomState extends State<ChatRoom> {
   void initState() {
     // TODO: implement initState
     getGroupChats();
-    getUser();
+    getSpectating();
     super.initState();
   }
 
@@ -221,32 +251,32 @@ class _ChatRoomState extends State<ChatRoom> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
-          actions: [
-            GestureDetector(
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => PersonalRepliesScreen()
-                ));
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(Icons.contacts),
+            title: Image.asset("assets/images/SpidrLogo.png", height: 50,),
+            actions: [
+              GestureDetector(
+                onTap: (){
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => PersonalRepliesScreen()
+                  ));
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Icon(Icons.contacts),
+                ),
               ),
-            ),
-            GestureDetector(
-              onTap: (){
-                authMethods.signOut();
-                Navigator.pushReplacement(context, MaterialPageRoute(
-                    builder: (context) => Authenticate()
-                ));
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(Icons.exit_to_app),
-              ),
-            )
-          ]
+              GestureDetector(
+                onTap: (){
+                  authMethods.signOut();
+                  Navigator.pushReplacement(context, MaterialPageRoute(
+                      builder: (context) => Authenticate()
+                  ));
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Icon(Icons.exit_to_app),
+                ),
+              )
+            ]
         ),
         body: Container(
           child: SingleChildScrollView(
@@ -263,12 +293,12 @@ class _ChatRoomState extends State<ChatRoom> {
                     child: Text("Spectating", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
                 ) : SizedBox.shrink(),
                 spectating.length > 0 ? Container(
-                  height: 70.0,
+                    height: 70.0,
                     child: mySpectChatList()
                 ) : SizedBox.shrink(),
                 Container(
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                        color: Colors.orange,
                         borderRadius: BorderRadius.circular(30)
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -311,8 +341,4 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 }
-
-
-
-
 

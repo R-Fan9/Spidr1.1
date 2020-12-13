@@ -33,7 +33,6 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
   }
 
   Widget joinRequestTile(String groupId, String hashTag, String userId, String userInfo){
-    print(userInfo);
     String userName = userInfo.substring(userInfo.indexOf('_')+1);
     String userEmail = userInfo.substring(0, userInfo.indexOf('_'));
 
@@ -104,11 +103,13 @@ class _JoinRequestsScreenState extends State<JoinRequestsScreen> {
               itemCount: listOfRequests.length,
                 itemBuilder: (context, index){
                 String userInfo = listOfRequests[index];
+                String userId = userInfo.substring(0, userInfo.indexOf('_'));
+                String emailAndUsername = userInfo.substring(userInfo.indexOf('_') + 1);
                 return joinRequestTile(
                     widget.groupId,
                     widget.hashTag,
-                    userInfo.substring(0, userInfo.indexOf('_')),
-                    userInfo.substring(userInfo.indexOf('_') + 1)
+                    userId,
+                    emailAndUsername
                 );
                 }))
           ],

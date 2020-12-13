@@ -22,7 +22,7 @@ class _FeedPageScreenState extends State<FeedPageScreen> {
   List spectatingChats = [];
 
   findChats(String groupId){
-    return DatabaseMethods(uid: Constants.myUserId).getConversationMessages(groupId);
+    return DatabaseMethods(uid: Constants.myUserId).getMessagesForFeed(groupId);
   }
 
   String _destructureFGroupInfo(String group) {
@@ -214,7 +214,8 @@ class _FeedPageScreenState extends State<FeedPageScreen> {
                                             hashTag,
                                             admin,
                                             Constants.myUserId,
-                                            spectatingChats.contains(groupId + "_" + hashTag)
+                                            spectatingChats.contains(groupId + "_" + hashTag),
+                                          false
                                         )
                                     )
                                     );
@@ -257,7 +258,7 @@ class _FeedPageScreenState extends State<FeedPageScreen> {
     );
   }
 
-  Widget chatList(Stream chats, String groupInfo){
+  Widget feedList(Stream chats, String groupInfo){
     return StreamBuilder(
         stream: chats,
         builder: (context, snapshot){
@@ -304,7 +305,7 @@ class _FeedPageScreenState extends State<FeedPageScreen> {
           child: ListView.builder(
               itemCount: myChats.length,
               itemBuilder: (context, index){
-                return chatList(myChats[myChats.keys.elementAt(index)], myChats.keys.elementAt(index));
+                return feedList(myChats[myChats.keys.elementAt(index)], myChats.keys.elementAt(index));
               }),
         )
       ),

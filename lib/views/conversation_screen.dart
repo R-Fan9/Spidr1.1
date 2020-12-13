@@ -23,7 +23,8 @@ class ConversationScreen extends StatefulWidget {
   final String admin;
   final String uid;
   final bool spectate;
-  ConversationScreen(this.groupChatId, this.hashTag, this.admin, this.uid, this.spectate);
+  final bool joinChat;
+  ConversationScreen(this.groupChatId, this.hashTag, this.admin, this.uid, this.spectate, this.joinChat);
 
   @override
   _ConversationScreenState createState() => _ConversationScreenState();
@@ -42,6 +43,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   @override
   void initState() {
+    !widget.spectate ? !widget.joinChat ? DatabaseMethods(uid: Constants.myUserId).openChat(widget.groupChatId, widget.hashTag) : null : null;
     DatabaseMethods(uid: widget.uid).getConversationMessages(widget.groupChatId).then((val) {
       setState(() {
         chatMessageStream = val;
@@ -56,9 +58,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       DateTime now = DateTime.now();
       String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
 
-      DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, messageController.text,
+      DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, widget.hashTag, messageController.text,
           Constants.myName, formattedDate, now.microsecondsSinceEpoch, null);
       messageController.text = "";
+
+      DatabaseMethods(uid: widget.uid).addNotification(widget.groupChatId, widget.hashTag);
     }
   }
 
@@ -319,8 +323,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd hh:mm a').format(now);
 
-    DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, '',
+    DatabaseMethods(uid: widget.uid).addConversationMessages(widget.groupChatId, widget.hashTag, '',
         Constants.myName, formattedDate, now.microsecondsSinceEpoch, imgObj);
+    DatabaseMethods(uid: widget.uid).addNotification(widget.groupChatId, widget.hashTag);
+
   }
 
   Future uploadImage() async {
@@ -361,7 +367,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             color: Theme.of(context).primaryColor,
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => AppCameraScreen(Constants.myUserId, "", widget.groupChatId)));
+                  builder: (context) => AppCameraScreen(Constants.myUserId, "", widget.groupChatId, widget.hashTag)));
             },
           ),
           Expanded(child: TextField(
@@ -471,67 +477,75 @@ class _ConversationScreenState extends State<ConversationScreen> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).primaryColor,
-        appBar: AppBar(
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.search),
-              iconSize: 30.0,
-              color: Colors.white,
-              onPressed: (){
-                setState(() {
-                  searchKeyWord = !searchKeyWord;
-                  highlightWords = [];
-                });
-              },
-            ),
-            !widget.spectate ? IconButton(
-                icon: widget.admin == widget.uid + "_" + Constants.myName ? Icon(Icons.add): Icon(Icons.more_horiz),
+    return WillPopScope(
+      onWillPop: () async {
+        DatabaseMethods(uid: widget.uid).closeChat(widget.groupChatId, widget.hashTag);
+        Navigator.of(context).pop();
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).primaryColor,
+          appBar: AppBar(
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.search),
                 iconSize: 30.0,
                 color: Colors.white,
                 onPressed: (){
-                  widget.admin == widget.uid + "_" + Constants.myName ? Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => InviteUserScreen(widget.groupChatId, widget.uid, widget.hashTag)
-                  )) : Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => GroupChatSettingsScreen(widget.groupChatId, widget.uid, widget.hashTag)));
+                  setState(() {
+                    searchKeyWord = !searchKeyWord;
+                    highlightWords = [];
+                  });
                 },
-            ) : SizedBox.shrink()
-          ],
-          title: Text(widget.hashTag,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white
-          ),),
-
-        ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        onDoubleTap: (){
-          setState(() {
-            searchKeyWord = false;
-            highlightWords = [];
-          });
-          FocusScope.of(context).unfocus();
-        },
-        child: Column(
-          children: [
-            searchKeyWord ? searchKeyWordBar(): SizedBox.shrink(),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                ),
-                child: chatMessageList(),
               ),
-            ),
-            !widget.spectate ? _buildMessageComposer() : SizedBox.shrink(),
-          ],
-        ),
-      )
+              !widget.spectate ? IconButton(
+                  icon: widget.admin == widget.uid + "_" + Constants.myName ? Icon(Icons.add): Icon(Icons.more_horiz),
+                  iconSize: 30.0,
+                  color: Colors.white,
+                  onPressed: (){
+                    widget.admin == widget.uid + "_" + Constants.myName ? Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => InviteUserScreen(widget.groupChatId, widget.uid, widget.hashTag)
+                    )) : Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => GroupChatSettingsScreen(widget.groupChatId, widget.uid, widget.hashTag)));
+                  },
+              ) : SizedBox.shrink()
+            ],
+            title: Text(widget.hashTag,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white
+            ),),
+
+          ),
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          onDoubleTap: (){
+            setState(() {
+              searchKeyWord = false;
+              highlightWords = [];
+            });
+            FocusScope.of(context).unfocus();
+          },
+          child: Column(
+            children: [
+              searchKeyWord ? searchKeyWordBar(): SizedBox.shrink(),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                  ),
+                  child: chatMessageList(),
+                ),
+              ),
+              !widget.spectate ? _buildMessageComposer() : SizedBox.shrink(),
+            ],
+          ),
+        )
+      ),
     );
   }
 }

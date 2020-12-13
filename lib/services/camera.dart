@@ -35,7 +35,7 @@ class CameraMethods{
   }
 
 
-  onCaptureForChat(context, CameraController cameraController, String personalChatId, String groupChatId) async{
+  onCaptureForChat(context, CameraController cameraController, String personalChatId, String groupChatId, String hashTag) async{
     try{
       final Directory extDir = await getApplicationDocumentsDirectory();
       final String dirPath = '${extDir.path}/Pictures';
@@ -71,8 +71,10 @@ class CameraMethods{
 
           ref.putFile(File(filepath)).then((value){
             value.ref.getDownloadURL().then((val){
-              DatabaseMethods(uid: Constants.myUserId).addConversationMessages(groupChatId,
-                  "", Constants.myName, formattedDate, now.microsecondsSinceEpoch, {"imgUrl":val, "imgName": fileName, "imgPath":filepath, "caption":""});
+              DatabaseMethods(uid: Constants.myUserId).addConversationMessages(groupChatId, hashTag,
+                  "", Constants.myName, formattedDate, now.microsecondsSinceEpoch,
+                  {"imgUrl":val, "imgName": fileName, "imgPath":filepath, "caption":""});
+              DatabaseMethods(uid: Constants.myUserId).addNotification(groupChatId, hashTag);
             });
           });
         }

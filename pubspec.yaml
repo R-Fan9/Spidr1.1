@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^1.6.24
   full_screen_image: ^1.0.2
   esys_flutter_share: ^1.0.2
+  firebase_messaging: ^7.0.3
 
 dev_dependencies:
   flutter_test:

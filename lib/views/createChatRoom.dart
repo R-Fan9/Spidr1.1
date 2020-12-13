@@ -46,7 +46,7 @@ class _CreateChatRoomState extends State<CreateChatRoom> {
 
       DatabaseMethods(uid: widget.uid).createGroupChat(hashTag.toUpperCase(), Constants.myName, chatRoomState, now.microsecondsSinceEpoch, searchKeys, groupCapacity).then((groupChatId) {
         Navigator.pushReplacement(context, MaterialPageRoute(
-            builder: (context) => ConversationScreen(groupChatId, hashTag.toUpperCase(), widget.uid + "_"+ Constants.myName, widget.uid, false)
+            builder: (context) => ConversationScreen(groupChatId, hashTag.toUpperCase(), widget.uid + "_"+ Constants.myName, widget.uid, false, true)
         ));
       }, onError: (error){
         print(error);
